@@ -5,19 +5,22 @@ def main(pagina):
     # Titulo da aplicação
     titulo = ft.Text('JeffZap')
 
+    # Tunel de comunicação entre usuários
     def websocket_chat(mensagem):
-        print('Chat', 'Olá, em que posso ajudar?') #Parei no 1:40:00
+        texto = ft.Text(mensagem)
+        chat.controls.append(texto)
+        pagina.update()
+    
+    pagina.pubsub.subscribe(websocket_chat)
 
+    # Função para enviar mensagem
     def enviar_mensagem(event):
         nome_usuario = text_area.value
         texto_mensagem = envia_mensagem.value
         
-        mensagem = ft.Text(f"{nome_usuario}: {texto_mensagem}")
-        chat.controls.append(mensagem)
+        mensagem = f"{nome_usuario}: {texto_mensagem}"
+        pagina.pubsub.send_all(mensagem) # Envia a mensagem para todos os usuários
         envia_mensagem.value = '' # Limpa o campo de texto
-        # resposta = 'Jeff: ' + mensagem
-        # chat.append(ft.Text(resposta))
-        # print('Chat', mensagem)
         pagina.update()
 
     envia_mensagem = ft.TextField(label='Digite sua mensagem', on_submit=enviar_mensagem)
@@ -28,13 +31,16 @@ def main(pagina):
 
     def enter_chat(event):
         popup.open = False # Fecha o modal
+
         pagina.remove(titulo)
         pagina.remove(botao)
         pagina.add(chat)
         pagina.add(linha_enviar)
+
         nome_usuario = text_area.value
-        texto_mensagem = ft.Text(f'{nome_usuario} entrou no chat')
-        chat.controls.append(texto_mensagem)
+        mensagem = f'{nome_usuario} entrou no chat'
+        pagina.pubsub.send_all(mensagem)
+        
         pagina.update()
     
     # Criar pop-up
@@ -48,7 +54,6 @@ def main(pagina):
         pagina.dialog = popup
         popup.open = True
         pagina.update()
-        print('Chat', 'Olá, em que posso ajudar?')
 
     # Botão inicial
     botao = ft.ElevatedButton('Iniciar Chat', on_click=open_dialog)
